@@ -113,10 +113,36 @@ SELECT E.EMPLOYEE_ID, E.FIRST_NAME, E.JOB_ID, E.SALARY * E.COMMISSION_PCT AS COM
 FROM EMPLOYEES E 
 WHERE E.COMMISSION_PCT  IS NOT NULL;
 
+--first name이 'Curtis'인 사람의 fist_name과 last_name, email, phone_number, job_id 조회
+--단 job_id 결과는 소문자로 출력한다.
+SELECT e.FIRST_NAME, e.LAST_NAME , e.EMAIL , e.PHONE_NUMBER , lower(e.JOB_ID) AS JOB_ID   
+FROM EMPLOYEES e 
+WHERE e.FIRST_NAME = 'Curtis';
+--출력) Curtis / Davies / CDAVIES / 1.650.555.0142 / st_clerk
 
 
+--부서번호가 60, 70, 80, 90 인 사원들의 사번, first_name, last_name, hire_date, job_id 조회
+--단 job_id 가 IT_PROG인 사원들의 경우 '프로그래머'로 변경하여 출력한다.
+SELECT e.FIRST_NAME, e.LAST_NAME , e.HIRE_DATE , REPLACE(e.JOB_ID, 'IT_PROG', '프로그래머') AS job_id 
+FROM EMPLOYEES e 
+WHERE e.DEPARTMENT_ID IN (60, 70, 80, 90);
+
+--job_id 가 AD_PRES, PU_CLERK 인 사원들의 사번, first_name, last_name, 부서번호, job_id 조회
+--단 사원명은 first_name, last_name을 연결하여 출력한다(예_ Douglas Grant)
+SELECT e.EMPLOYEE_ID , e.FIRST_NAME ||' ' || e.LAST_NAME AS name, e.DEPARTMENT_ID , e.JOB_ID  
+FROM EMPLOYEES e 
+WHERE e.job_id IN ('AD_PRES', 'PU_CLERK');
 
 
+--입사 10주년이 되는 날짜 출력
+SELECT
+	E.EMPLOYEE_ID,
+	E.FIRST_NAME,
+	E.HIRE_DATE,
+	ADD_MONTHS(HIRE_DATE, 120)
+FROM
+	EMPLOYEES e; 
+--출력 한 줄: 199 / Douglas	 / 2018-01-13 00:00:00.000 / 2028-01-13 00:00:00.000
 
 
 
