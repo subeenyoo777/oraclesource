@@ -131,7 +131,8 @@ WHERE
 	
  
  --사번이 7782 조회
- SELECT *
+ SELECT
+	*
 FROM
 	EMP e
 WHERE
@@ -332,10 +333,28 @@ SELECT E.EMPNO, E.ENAME, E.SAL, E.DEPTNO  FROM EMP E WHERE E.DEPTNO = 10;
 --두 문자열 데이터 합치기 : CONCAT(문자열1, 문자열2)    
 --	CONCAT보다 이 기회를 더 많이 씀	||
 --특정 문자 제거 : TRIM(), LTRIM(왼쪽용), RTRIM(오른쪽용)
+--데이터의 공간을 특정 문자로 채우기 : LPAD(), RPAD()
+--LPAD(데이터, 데이터 자릿수, 채울문자) .. 왼쪽으로 채움
+--LPAD(데이터, 데이터 자릿수, 채울문자) ..오른쪽으로 채움
 
 ==================================================================
---사원 이름을 대문자, 소문자, 첫문자만 대문자로 변경
+--Oracle = > 10자리로 표현
+SELECT
+	'Oracle',
+	LPAD('Oracle', 10, '#'),
+	RPAD('Oracle', 10, '*'),
+	LPAD('Oracle', 10),
+	RPAD('Oracle', 10)
+FROM
+	dual;
 
+
+
+
+
+
+
+--사원 이름을 대문자, 소문자, 첫문자만 대문자로 변경
 SELECT e.ENAME , upper(e.ENAME ), lower(e.ENAME ), initcap(E.ENAME )
 FROM emp e;
 --결과 한줄만 :SMITH / SMITH / smith / Smith
@@ -560,48 +579,263 @@ SELECT
 	TO_CHAR(SYSDATE, 'HH24:MI:SS'),
 	TO_CHAR(SYSDATE, 'HH12:MI:AM'),
 	TO_CHAR(SYSDATE, 'HH:MI:PM')
-FROM
-	DUAL;
+FROM DUAL;
 
 --2025-03-19 17:57:40.000 / 03 / 3월 / 3월 / / 19 / 수 / 수요일
 --17:59:45 / 05:59:오후 / 05:59:오후
 
-
+--9 : 숫자 한자리를 의미
+--0 : 숫자 한자리를 의미(빈자리를 0으로 채움)
+SELECT e.sal, to_char(e.sal, '$999,999'), to_char(e.sal, '$000,999,999')
+FROM emp e;
  
+--문자열 데이터와 숫자 데이터 연산
+SELECT 1300-'1500', 1300+ '1500'
+FROM DUAL;
+ 
+SELECT '1300' - '1500'
+FROM DUAL;
+
+--컴마가 들어가면 문자가 됨 > 연산X(수치가 부적합합니다)
+SELECT '1,300' - '1,500'
+FROM DUAL;
+
+--TO_NUMBER('문자열 데이터'. '인식할 숫자 형태')
+SELECT TO_NUMBER('1,300', '999,999') - TO_NUMBER('1,500','999,999')
+FROM DUAL;
+--출력 : -200
+
+--TO_DATE() : 문자열 데이터 => 날짜 형식으로 변경
+SELECT
+	TO_DATE('2025-03-20', 'YYYY-MM-DD') AS DATE1,
+	TO_DATE('2025-03-20', 'YYYY/MM/DD') AS DATE2
+FROM
+	DUAL;
+
+--NULL
+--산술연산이나 비교 연산자(IS NULL)가 제대로 수행되지 않음.
+-- 1)NVL(NULL 여부 검사할 데이터, NULL일 때 반환할 데이터)
+-- 2) NVL2(NULL 여부 검사할 데이터, NULL이 아닐 때 반환할 데이터,NULL일 때 반환할 데이터)
+SELECT E.EMPNO, E.ENAME, E.SAL, E.COMM, E.SAL+E.COMM, NVL(E.COMM, 0), E.SAL + NVL(E.COMM, 0)
+FROM EMP E;
+
+
+SELECT
+	E.EMPNO,
+	E.ENAME,
+	E.SAL,
+	E.COMM,
+	E.SAL + E.COMM,
+	NVL2(E.COMM, 'O', 'X'),
+	NVL2(E.COMM, E.SAL *12 + E.COMM, E.SAL*12) AS 연봉
+FROM EMP E;
+
+--자바의 IF, SWITCH 구문과 유사
+--DECODE
+--DECODE( 검사대상이 될 데이터, 
+--		  조건1, 만족시 반환할 결과
+--		  조건2, 만족시 반환할 결과,
+--	      조건1~조건n 일치하지 않을 때 반환할 결과
+-- )
+
+--CASE (컴마 사용하지 않음)
+--CASE 검사대상이 될 데이터
+--		WHEN 조건1 THEN 만족시 반환할 결과
+--		WHEN 조건2 THEN 만족시 반환할 결과
+--	    ELSE 조건1~조건n 일치하지 않을 때 반환할 결과
+--END
+
+
+--직책이 manager인 사원은 급여의 10%인상
+--직책이 salseman인 사원은 급여의 5%인상
+--직책이 analyst인 사원은 급여 동결
+--나머지는 3% 인상
+
+SELECT
+	e.EMPNO,
+	e.ENAME,
+	e.JOB ,
+	e.SAL ,
+	decode(E.JOB, 'MANAGER' , E.SAL * 1.1,
+				  'SALESMAN', E.SAL * 1.05,
+				  'ANALYST', E.SAL,
+				  E.SAL * 1.03
+	)AS UPSAL
+FROM
+	emp e;
+
+SELECT
+	e.EMPNO,
+	e.ENAME,
+	e.JOB ,
+	e.SAL ,
+	CASE E.JOB
+	WHEN 'MANAGER' THEN E.SAL * 1.1
+	WHEN 'SALESMAN' THEN E.SAL * 1.05
+	WHEN 'ANALYST' THEN E.SAL
+	ELSE E.SAL * 1.03
+	END AS UPSALL
+	FROM
+	emp e;
+
+
+--COMM NULL 인 경우 '해당사항 없음'
+--COMM 0 인 경우 '수당없음'
+--COMM  > 0 인 경우 '수당 : 800'
+--COMMITION이 NULL 이면 = 아닌 IS NULL 써야 해
+SELECT
+	e.EMPNO,
+	e.ENAME,
+	e.JOB ,
+	e.SAL ,
+	CASE 
+	WHEN E.COMM IS NULL THEN '해당사항없음'
+	WHEN E.COMM = 0 THEN '수당없음'
+	WHEN E.COMM > 0 THEN '수당 : ' || E.COMM
+	END AS COMM_TEXT
+	FROM
+	emp e;
+
+
+--[실습]
+--1. EMPNO 열에 7369 => 73**, ENAME SMITH => S****
+--EMPNO, 마스킹처리EMPNO, ENAME, 마스킹처리ENAME
+			 --원본 문자열,       찾을 문자열 		
+SELECT REPLACE('7369', SUBSTR('7369',3), '**')
+FROM DUAL;
+--결과 : 73**
+
+SELECT
+	E.EMPNO,
+	REPLACE(e.EMPNO, SUBSTR(e.EMPNO,3), '**') AS MASKING_EMPNO,
+	E.ENAME,
+FROM EMP E;
+
+
+--RPAD
+SELECT
+	E.EMPNO,
+	RPAD(SUBSTR(e.EMPNO, 1, 2), 4, '**') AS MASKING_EMPNO,
+	E.ENAME,
+	RPAD(SUBSTR(e.ENAME, 1, 1), 4, '**') AS MASKING_ENAME
+FROM
+	EMP E;
+
+
+--2. EMP 테이블에서 사원의 월 평균 근무일수는 21이다.
+--하루 근무시간을 8시간으로 보았을 때 사원의 하루 급여(day_pay)와 시급(time_pay)를
+--계산하여 출력한다(단, 하루 급여는 소수 셋째자리에서 버리고, 시급은 둘째 자리에서 반올림)
+--출력형태)EMPNO, ENAME, SAL, DAY_PAY, TIME_PAY
+
+SELECT
+	E.EMPNO,
+	E.ENAME,
+	E.SAL,
+	TRUNC(E.SAL/21, 2)AS DAY_PAY,
+	ROUND(E.SAL/21/8, 1) AS TIME_DAY
+	FROM
+	EMP E;
+
+--3. 입사일을 기준으로 3개월이 지난 후 첫 월요일에 정직원이 된다.
+--사원이 정직원이 되는 날짜(R_JOB)을 YYYY-MM-DD 형식으로 출력한
+--단, 추가 수당이 없는 사원의 추가수당은 N/A로 출력
+--EMPNO, ENAME, HIREDATE, R_JOB, COMM
+SELECT
+	E.EMPNO,
+	E.ENAME,
+	E.HIREDATE,
+	NEXT_DAY(ADD_MONTHS(E.HIREDATE, 3), '월요일') AS R_JOB,
+	NVL(TO_CHAR(E.COMM), 'N/A')
+	FROM
+	EMP E;
+
+--4. 직속상관의 사원번호가 없을 때 : 0000
+--직속상관의 사원번호 앞 두자리가 75일 때 : 5555
+--직속상관의 사원번호 앞 두자리가 76일 때 : 6666
+--직속상관의 사원번호 앞 두자리가 77일 때 : 7777
+--직속상관의 사원번호 앞 두자리가 78일 때 : 8888
+--그 외 직속상관의 사원 번호일 때: 본래 직속상관 사원번호 그대로 출력
+--출력형태 ) EMPNO, ENAME, CHG_MGR
+SELECT
+	E.EMPNO,
+	E.ENAME,
+	E.MGR,
+	CASE 
+		WHEN E.MGR IS NULL THEN '0000'
+		WHEN SUBSTR(TO_CHAR(E.MGR), 1, 2) = '75 ' THEN ' 5555 '
+		WHEN SUBSTR(TO_CHAR(E.MGR), 1, 2) = '76' THEN '6666'
+		WHEN SUBSTR(TO_CHAR(E.MGR), 1, 2) = '76' THEN '7777'
+		WHEN SUBSTR(TO_CHAR(E.MGR), 1, 2) = '78' THEN '8888'
+		ELSE TO_CHAR(E.MGR)
+	END AS CHG_MGR
+FROM
+		EMP E;
+
+SELECT
+	E.EMPNO,
+	E.ENAME,
+	E.MGR,
+	CASE 
+		WHEN E.MGR IS NULL THEN '0000'
+		WHEN E.MGR LIKE '75%' THEN ' 5555'
+		WHEN E.MGR LIKE '76%' THEN ' 6666'
+		WHEN E.MGR LIKE '77%' THEN ' 7777'
+		WHEN E.MGR LIKE '78%' THEN '8888'
+		ELSE TO_CHAR(E.MGR)
+	END AS CHG_MGR
+FROM
+		EMP E;
+
+--하나의 열에 출력 결과를 담는 다중행 함수
+---NULL 행은 제외하고 연산
+-- 1. SUM()/ 2.COUNT() / 3. MAX() /  4. MIN() / 5. AVG()
+
+--전체 사원 급여 합
+SELECT SUM(E.SAL) 
+FROM EMP E;
+
+--중복된 급여를 제외한 전체 사원의 합
+SELECT SUM(DISTINCT E.SAL), SUM(ALL E.SAL) FROM EMP E;
+
+--단일 그룹의 그룹 함수가 아닙니다 (같이 출력하면 안되는 함수를 넣은 것)
+SELECT E.ENAME, SUM(E.SAL) FROM EMP E;
+
+--사원 수 구하기
+SELECT COUNT(E.EMPNO), COUNT(E.COMM), COUNT(ALL e.COMM )
+FROM EMP E;
+
+--급여의 최대값과 최소값 구하기
+SELECT
+	max(e.SAL),
+	min(e.SAL)
+FROM
+	emp e; 
+
+--10번 부서의 사원 중 급여의 최대값 구하기
+SELECT
+	max(e.sal),
+	min(e.sal)
+FROM
+	emp e
+WHERE
+	e.DEPTNO = 10;
+
+--20번 부서의 입사일 중 가장 최근/늦은 입사일 출력(최근일수록 큰 수, 날짜도 숫자로 인식)
+SELECT
+	MAX(e.HIREDATE),
+	MIN(e.HIREDATE)
+	FROM emp e
+WHERE
+	e.DEPTNO = 20;
+
+--부서번호가 30번인 사원의 평균 급여
+SELECT AVG(E.SAL)
+FROM EMP E
+WHERE E.DEPTNO = 30;
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+--
 
 
 

@@ -137,7 +137,6 @@ WHERE e.job_id IN ('AD_PRES', 'PU_CLERK');
 --입사 10주년이 되는 날짜 출력
 SELECT
 	E.EMPLOYEE_ID,
-	E.FIRST_NAME,
 	E.HIRE_DATE,
 	ADD_MONTHS(HIRE_DATE, 120)
 FROM
@@ -146,6 +145,13 @@ FROM
 
 
 
+--회사 내의 최대연봉과 최소연봉의 차이 조회
+SELECT MAX(E.SALARY) - MIN(E.SALARY) AS GAP FROM EMPLOYEES E;
+
+
+--매니저로 근무하는 사원들의 숫자 조회
+SELECT COUNT(DISTINCT E.MANAGER_ID)
+FROM EMPLOYEES E;
 
 
 
