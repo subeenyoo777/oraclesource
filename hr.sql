@@ -153,6 +153,40 @@ SELECT MAX(E.SALARY) - MIN(E.SALARY) AS GAP FROM EMPLOYEES E;
 SELECT COUNT(DISTINCT E.MANAGER_ID)
 FROM EMPLOYEES E;
 
+--결과값을 원하는 열로 묶어 출력 : GROUP BY
+
+--부서별 평균 급여 조회
+SELECT E.DEPTNO, AVG(E.SAL)
+FROM EMP E
+GROUP BY E.DEPTNO;
+
+--부서별, 직책별 평균 급여
+SELECT E.DEPTNO AS 부서, E.JOB AS 직책, AVG(E.SAL)
+FROM EMP E
+GROUP BY E.DEPTNO, E.JOB
+ORDER BY E.DEPTNO;
+
+
+
+--부서별 직원 수 조회 (부서번호 오름차순)
+
+--부서번호 직원수(부서번호 오름차순)
+
+--부서별 평균 연봉 조회 (부서번호 오름차순)
+
+--부서번호 평균 연봉(0의 자리에서 반올림)
+
+--동일한 직무를 가진 사원의 수를 조회
+
+
+
+
+
+
+
+
+
+
 
 
 
