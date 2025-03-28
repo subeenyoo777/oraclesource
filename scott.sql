@@ -14,14 +14,14 @@
 -- SALGRADE(급여테이블)
 -- grade(급여등급), losal(최저급여), hisal(최대급여)
 
--- 개발자 : CR(Read)UD
+-- 개발자 : C(Insert), R(Read), U(Update), D(Delete)
 -- SQL(Structured Query Language : 구조질의언어) : RDBMS 데이터를 다루는 언어
 
 
 -- 1. 조회(SELECT) - Read
 -- 사원정보조회(전체조회)
 -- * (모든 열)
-SELECT * FROM EMP e; 
+SELECT * 	FROM EMP e; 
 
 -- 특정 열 조회
 SELECT e.EMPNO, e.ENAME, e.JOB FROM EMP e; 
@@ -913,7 +913,9 @@ FROM EMP E, DEPT D
 WHERE E.DEPTNO = D.DEPTNO AND E.SAL >= 3000; 
 
 -- 사원별 부서정보 조회 + 사원별 급여 >= 2500 + 사원번호 9999 이하
-SELECT E.EMPNO, E.DEPTNO, E.SAL, D.DNAME, D.LOC
+SELECT 
+
+
 FROM EMP E, DEPT D 
 WHERE E.DEPTNO = D.DEPTNO AND E.SAL >= 2500 AND E.EMPNO <= 9999; 
 
@@ -1352,6 +1354,735 @@ WHERE
 		EMP E
 	WHERE
 		E.JOB = 'SALESMAN');
+
+
+--C(Insert) : 삽입
+
+-- INSERT INTO 테이블명(필드명, 필드명2...)
+-- VALUES(값1, 값2, 값3...)
+
+--필드명 생략은 테이블의 현재 열 순서대로 나열되었다고 가정하고 데이터 처리
+
+--기존 테이블 복사 후 새 테이블로 생성
+CREATE TABLE DEPT_TEMP AS SELECT * FROM DEPT;
+
+
+INSERT INTO DEPT_TEMP(DEPTNO, DNAME, LOC)
+VALUES(50, 'DATABASE', 'SEOUL');
+
+INSERT INTO DEPT_TEMP
+VALUES(60, 'NETWORK','BUSAN');
+
+INSERT INTO DEPT_TEMP
+VALUES('70', 'NETWORK','BUSAN');
+
+--값의 수가 충분하지 않습니다
+INSERT INTO DEPT_TEMP(DEPTNO, DNAME, LOC)
+VALUES('NETWORK','BUSAN');
+
+--값의 수가 너무 많습니다
+INSERT INTO DEPT_TEMP(DEPTNO, DNAME, LOC)
+VALUES('NETWORK','BUSAN','NETWORK','BUSAN');
+
+--이 열에 대해 지정된 전체 자릿수보다 큰 값이 허용됩니다.
+--NUMBER(2,0)
+INSERT INTO DEPT_TEMP
+VALUES(600, 'NETWORK','BUSAN');
+
+--NULL 넣는 방법. (테이블에 NOT NULL 미체크돼있을 때)
+--넣지 않고 싶은 값이 있다면 반드시 NULL값을 넣거나
+INSERT INTO DEPT_TEMP
+VALUES(80, 'NETWORK',NULL);
+--타입을 따로 지정해줘
+INSERT INTO DEPT_TEMP(DEPTNO, DNAME)
+VALUES(80, 'NETWORK');
+
+--열 구조만 복사 후 새 테이블 생성(값 복사 X)
+CREATE TABLE EMP_TEMP AS SELECT * FROM EMP WHERE 1<>1;
+
+--날짜 데이터 삽입 : 'YYYY-MM-DD' 또는 'YYYY/MM/DD' 
+INSERT INTO EMP_TEMP(EMPNO, ENAME, JOB, MGR, HIREDATE, SAL, COMM, DEPTNO)
+VALUES(9999, '홍길동', 'PRESIDENT',NULL, '2020-12-13', 5000, 1000, 10);
+
+INSERT INTO EMP_TEMP(EMPNO, ENAME, JOB, MGR, HIREDATE, SAL, COMM, DEPTNO)
+VALUES(9999, '성춘향', 'PRESIDENT',NULL, SYSDATE, 5000, 1000, 10);
+
+--EMP, SALESGRADE 급여 등급이 1인 사원들만 EMP_TABLE에 추가하기
+INSERT
+	INTO
+	EMP_TEMP(EMPNO, ENAME, JOB, MGR, HIREDATE, SAL, COMM, DEPTNO)
+SELECT
+	E.*
+FROM
+	EMP E
+JOIN SALGRADE s ON
+	E.SAL BETWEEN S.LOSAL AND S.HISAL
+	AND S.GRADE = 1;
+
+
+
+--U(UPDATE)
+--UPDATE 테이블명
+--SET 변경할 열 = 값, 변경할 열 = 값 
+--WHERE 데이터를 변경할 대상 행을 선별한느 조건 나열
+
+--90번 부서의 LOC SEOUL로 변경
+UPDATE DEPT_TEMP 
+SET LOC = 'SEOUL'
+WHERE DEPTNO = 90;
+
+--무조건 반영
+UPDATE DEPT_TEMP 
+SET LOC = 'SEOUL';
+
+--COMMIT
+--ROLLBACK
+
+--40번 부서의 부서명,위치 변경
+--DEPT 테이블 40번 부서랑 동일
+UPDATE DEPT_TEMP 
+SET (DNAME, LOC) = (SELECT DNAME, LOC FROM DEPT WHERE DEPTNO  = 40)
+WHERE DEPTNO = 40;
+
+--50번 부서의 DNAME, LOC 변경
+UPDATE DEPT_TEMP 
+SET LOC = 'BOSTON', DNAME = 'SALES'
+WHERE DEPTNO = 50;
+--안되면 0/되면 반영된 행의 숫자 돌아옴
+
+--DELETE : 삭제
+--DELETE FROM 테이블명
+--WHERE 삭제할 조건
+--FROM은 선택조건
+
+--70번 부서 삭제
+DELETE FROM DEPT_TEMP 
+WHERE DEPTNO = 70;
+
+
+--LOC가 SEOUL 데이터 삭제
+DELETE DEPT_TEMP 
+WHERE LOC = 'SEOUL';
+
+--EMP_TEMP에서 SAL이 3000이상인 사람 삭제
+DELETE EMP_TEMP 
+WHERE SAL >= 3000;
+
+DELETE EMP_TEMP;
+
+
+CREATE TABLE EXAM_EMP AS SELECT * FROM EMP;
+CREATE TABLE EXAM_DEPT AS SELECT * FROM DEPT;
+CREATE TABLE EXAM_SALGRADE AS SELECT * FROM SALGRADE;
+
+--DEPT 테이블에 다음 데이터를 삽입하기
+--50, ORACLE, BUSAN
+--60, SQL, ILSAN
+--70, SELECT, INCHEON
+--80, DML, BUNDANG
+INSERT INTO DEPT_TEMP VALUES(50,'ORACLE', 'BUSAN');
+INSERT INTO DEPT_TEMP VALUES(60,'SQL', 'ILSAN');
+INSERT INTO DEPT_TEMP VALUES(70,'SELECT', 'INCHEON');
+INSERT INTO DEPT_TEMP VALUES(80,'DML', 'BUNDANG');
+
+--EXAM_EMP 테이블에 다음 데이터 삽입하기 
+--7201, USER1, MANAGER, 7788, 2106-02-01, 4500, NULL, 50
+--7202, USER2, CLERK, 7201 , 2106-02-16, 1800, NULL, 50
+--7203, USER3, ANALYST, 7201 , 2106-04-11, 3400, NULL, 60
+--7204, USER4, SALESMAN, 7201, 2106-05-31, 2700, NULL, 60
+--7205, USER5, CLEARK, 7201, 2106-07-20, 2600, NULL, 70
+--7206, USER6, CLEARK, 7201, 2106-09-08, 2600, NULL, 70
+--7207, USER7, LECTURER, 7201, 2106-10-28, 2300, NULL, 80
+--7208, USER8, STUDENT, 7201, 2106-03-09, 1200, NULL, 80
+
+NUMBER(4) VARCHAR2(10) VARCHAR2(9) DATE
+NUMBER(4) NUMBER(7)  NUMBER(2)
+
+INSERT INTO EXAM_EMP VALUES
+(7201, 'USER1', 'MANAGER', 7788, '2106-02-01', 4500, NULL, 50);
+
+INSERT INTO EXAM_EMP VALUES
+(7202, 'USER2', 'CLERK', 7201, '106-02-16', 1800, NULL, 50);
+
+INSERT INTO EXAM_EMP VALUES
+(7203, 'USER3', 'ANALYST', 7201, '2106-04-11', 3400, NULL, 60);
+
+INSERT INTO EXAM_EMP VALUES
+(7204, 'USER4', 'SALESMAN', 7201, '2106-05-31', 2700, NULL, 60);
+
+INSERT INTO EXAM_EMP VALUES
+(7205, 'USER5', 'CLEARK', 7201, '2106-07-20', 2600, NULL, 70);
+
+INSERT INTO EXAM_EMP VALUES
+(7206, 'USER6', 'CLEARK', 7201, '2106-09-08', 2600, NULL, 70);
+
+INSERT INTO EXAM_EMP VALUES
+(7207, 'USER7', 'LECTURER', 7201, '2106-10-28', 2300, NULL, 80);
+
+INSERT INTO EXAM_EMP VALUES
+(7208, 'USER8', 'STUDENT', 7201, '2106-03-09', 1200, NULL, 80);
+
+
+
+--EXAM_EMP 50번 부서에서 근무하는 사원의 평균 급여보다 많이 받는 사원을 
+--70번 부서로 옮기는 SQL 구문 작성
+
+--강사님
+UPDATE EXAM_EMP SET DEPT_NO = 70 WHERE SAL >
+(SELECT AVG(SAL) FROM EXAM_EMP WHERE DEPTNO = 50);
+--나
+UPDATE EXAM_EMP 
+SET DEPTNO = 70
+WHERE SAL > (SELECT ROUND(AVG(SAL)) FROM EXAM_EMP) AND DEPTNO  = 50;
+
+
+--EXAM_EMP에서 입사일이 가장 빠른 60번 부서 사원보다 늦게 입사한 사원의 
+--급여를 10% 인상하고 80번 부서로 옮기는 SQL 구문 작성
+--강사님
+UPDATE EXAM_EMP SET SAL = SAL * 1.1, DEPTNO = 80 WHERE HIREDATE >
+(SELECT MIN(HIREDATE) FROM EXAM_EMP WHERE DEPTNO = 60);
+
+--나
+UPDATE EXAM_EMP
+SET DEPTNO = 80, 
+SAL = SAL * 1.10
+WHERE HIREDATE > 
+(SELECT MIN(HIREDATE) FROM EXAM_EMP WHERE DEPTNO = 60);
+
+
+-- EXAM_EMP 에서 급여 등급이 5인 사원을 삭제하는 SQL 구문 작성
+DELETE
+FROM
+	EXAM_EMP
+WHERE
+	EMPNO 
+IN (
+	SELECT
+		EMPNO
+	FROM
+		EXAM_EMP E
+	JOIN EXAM_SALGRADE S ON
+		E.SAL BETWEEN S.LOSAL AND S.HISAL
+		AND S.GRADE = 5);
+
+--트랜젝션 : ALL 혹은 NOTHING (전부 수행 or 전부 취소)
+--DML (데이터 조작어) - INSERT, UPDATE, DELETE
+--COMMIT(전부 실행) / ROLLBACK(전부 취소)
+INSERT INTO DEPT_TEMP VALUES(30, 'DATABASE', 'SEOUL');
+UPDATE DEPT_TEMP SET LOC = 'BUSAN' WHERE DEPTNO = 30;
+DELETE FROM DEPT_TEMP WHERE DNAME = 'RESEARCH';
+COMMIT;
+
+ROLLBACK;
+
+--세션 : 데이터베이스 접속 후 > 작업을 수행한 후 > 접속을 종료하기까지 전체 기간.
+--동시 접속 막기 위해 사용
+SELECT * FROM EMP E;
+
+DELETE FROM DEPT_TEMP WHERE DEPTNO = 30;
+COMMIT;
+
+--DDL(데이터 정의어) : 객체를 생성, 변경, 삭제
+--1. 테이블 생성 : CREATE 
+--2.		변경 : ALTER
+--3.		삭제 : DROP
+--4. 테이블 전체 데이터 삭제 : TRUNCATE
+--5. 테이블 이름 변경 : RENAME
+
+--CREATE TABLE 테이블명(
+--컬럼명1, 자료형,
+--컬럼명2, 자료형,
+--)
+
+--테이블명 규칙
+--문자로 시작(영문자, 한글, 숫자 가능)
+--테이블 이름은 30바이트 이하
+--같은 사용자 안에서는 테이블명 중복 불가
+--SQL 예약어(SELECT, FROM..)는 테이블 일므으로 사용할 수 없음
+
+-- VARCHAR2 (14): 영어 14문자, 한글 4문자 입력 가능
+--NUMBER(7,2) : 전체 자리 수 7(소수점 2자리 포함)
+CREATE TABLE DEPT_DDL(
+DEPTNO NUMBER(2,0),
+DNAMAE VARCHAR2(14),
+LOC VARCHAR2(13)
+);
+
+CREATE TABLE EMP_DDL(
+EMPNO NUMBER(4,0),
+ENAME VARCHAR(10),
+JOB VARCHAR2(9),
+MGR NUMBER(4,0),
+HIREDATE DATE,
+SAL NUMBER(7,2),
+COMM NUMBER(7,2),
+DEPTNO NUMBER(2,0)
+);
+
+--기존 테이블 구조와 데이터를 이용한 새 테이블 생성
+CREATE TABLE EXAM_EMP AS SELECT * FROM EMP;
+--기존 테이블 구조만 이용해 새 테이븍ㄹ 생성
+CREATE TABLE EXAM_EMP AS SELECT * FROM WHERE 1<>1;
+
+--ALTER : 테이블 변경
+-- 1) 열 추가
+-- 2) 열 이름 변경
+-- 3) 열 자료형 변경 
+-- 4) 특정 열 삭제(행 삭제는 delete)
+
+--HP 열 추가
+ALTER TABLE EMP_DDL ADD HP VARCHAR2(20);
+
+--HP => TEL 변경
+ALTER TABLE EMP_DDL RENAME COLUMN HP TO TEL;
+
+--열 자료형 변경
+--EMPNO 자리수 4 => 5 
+ALTER TABLE EMP_DDL MODIFY EMPNO NUMBER(5);
+ALTER TABLE EMP_DDL MODIFY ENAME VARCHAR2(8);
+ALTER TABLE EMP_DDL MODIFY EMPNO NUMBER(3);
+
+--"정도 또는 자리수를 축소할 열은 비어 있어야 합니다"(데이터가 있는 테이블은 오류가 남, 데이터 손실 막기 위함)
+ALTER TABLE EMP_TEMP MODIFY EMPNO NUMBER(3);
+
+
+--특정 열 삭제
+ALTER TABLE EMP_DDL DROP COLUMN TEL;
+
+--테이블의 이름 변경
+RENAME EMP_DDL TO EMP_RENAME;
+
+--테이블 데이터 삭제
+--DELETE FROM EMP_RENAME; => ROLLBACK 가능
+
+--전체 데이터 삭제
+TRUNCATE TABLE EMP_RENAME; --=> ROLLBACK 안됨
+
+--테이블 자체 제거
+DROP TABLE EMP_RENAME;
+
+
+
+
+--MEMBER 테이블 생성하기
+--ID VARCHAR2(8) / NAME 10 / ADDR 50 / EMAIL 30 / AGE NUMBER(4)
+CREATE TABLE MEMBER(
+ID VARCHAR2(8),
+ NAME VARCHAR2(10),
+ ADDR VARCHAR2(50),
+ EMAIL VARCHAR2(30),
+ AGE NUMBER(4)
+);
+
+--ID VARCHAR2(8) PK/ NAME 10 NOT NULL /ADDR 50 / EMAIL 30 NOT NULL/ AGE NUMBER(4)
+CREATE TABLE MEMBER(
+ NO NUMBER(8) UNIQUE,
+ ID VARCHAR2(8) PRIMARY KEY,
+ NAME VARCHAR2(10) NOT NULL,
+ ADDR VARCHAR2(50),
+ EMAIL VARCHAR2(30) NOT NULL,
+ AGE NUMBER(4)
+);
+
+
+Drop TABLE MEMBER;
+
+--insert(remark 입력 안함)
+INSERT INTO member(id, name, addr, email, age)
+VALUES('hong123', '홍길동', '서울시 종로구', 'hong123@naver.com', 24);
+
+
+--MEMEBER 테이블 열 추가
+--BIGO 열 추가(문자열, 20)
+ALTER TABLE MEMBER ADD BIGO VARCHAR2(20);
+
+--BIGO 열 크기를 30으로 변경
+ALTER TABLE MEMBER MODIFY BIGO VARCHAR2(30);
+
+--BIGO 열 이름을 REMARK로 변경
+ALTER TABLE MEMBER RENAME COLUMN BIGO TO REMARK;  
+
+--ORACLE 객체
+--1. 오라클 데이터베이스 테이블
+--	1) 사용자 테이블
+--	2) 데이터 사전(Dictionary) - 중요한 데이터(사용자, 권한, 메모리, 성능...)
+--	->일반 사용자가 접근하는 곳은 아님
+-- user_*, all_*, v$_* .. 들어있다.
+-- 2. 인덱스 : 검색을 빠르게 처리하기 위해 사용
+--	1) FULL SCAN 
+--	2) INDEX SCAN
+-- 3. view : 가상 테이블
+-- 물리적으로 저장된 테이블은 아님.
+--4. 시퀀스 : 규칙에 따라 순번을 생성
+
+SELECT * FROM DICT; --사전 검색
+
+--scott 계정이 가진 table 조회
+--DEPT,EMP,BONUS,SALGRADE,DEPT_NO,DEPT_TEMP,EMP_TEMP,EXAM_EMP,EXAM_SALGRADE,EXAM_DEPT,DEPT_DDL,MEMBER
+SELECT TABLE_NAME FROM USER_TABLES;
+
+
+
+--인덱스 조회
+SELECT * FROM USER_INDEXES;
+
+--인덱스 생성
+--CREATE INDEX 인덱스명 ON 테이블명(열이름 ASC OR DESC, 열이름...)
+
+CREATE INDEX IDX_EMP_TEMP_SAL ON EMP_TEMP(SAL);
+
+--인덱스 삭제
+DROP INDEX IDX_EMP_TEMP_SAL;
+
+SELECT * FROM EMP E;
+
+--view 생성
+--CREATE VIEW 뷰이름(열이름1,열이름2..) AS (저장할 SELECT 구문)
+--보안성 : 특정 열을 노출하고 싶지 않을 때
+--편리성 : SELECT 문의 복잡도 완화(
+--일부분의 데이터를 가진 VIEW를 통해 쉽게 데이터 추출하기 위함)
+--권한을 가진 사용자만 생성 가능
+
+
+SELECT e.empno, E.ENAME, E.JOB, E.DEPTNO FROM emp E
+WHERE E.DEPTNO = 20;
+
+--↓↓20번만 보는 VIEW 생성
+CREATE VIEW VW_EMP20 AS (
+SELECT
+E.EMPNO,
+E.ENAME,
+E.JOB,
+E.DEPTNO
+FROM emp e WHERE E.DEPTNO = 20);
+
+--VIEW 삭제
+DROP VIEW VW_EMP20;
+
+
+ --시퀀스 : 오라클 데이터베이스에서 특정 규칙에 따른 연속 숫자를 생성하는 객체
+--게시판 번호, 멤버 번호.. 에 쓰임
+
+--시퀀스 생성 방법 : CREATE SEQUENCE 시퀀스명;
+CREATE SEQUENCE board_seq;
+--(=)
+--CREATE SEQUENCE SCOTT.BOARD_SEQ 
+--INCREMENT BY 1 (시퀀스에서 생성할 번호의 증가값 : 기본값은 1 )
+--MINVALUE 1 (시퀀스에서 생성할 번호의 최솟값 : 기본값 NOM0INVALUE(1 - 오름차순))
+--MAXVALUE 9999999999999999999999999999 (시퀀스에서 생성할 번호의 최대값)
+--NOCYCLE ( 1~ MAX_VAULE 번호가 다 발행된 후에 어떻게 할지. NOCYCLE = 새로운 번호 요청 시 에러 발생시킴 | CYCLE = 번호가 다 발행된 후에 다시 1부터)
+--CACHE 20 (시퀀스가 생성할 번호를 메모리에 미리 할당해 놓을 갯수를 지정 | NOCCASH : 갯수를 지정하지 말라.)
+--NOORDER(오름차순) 
+
+--MEMBER 테이블에 NO 컬럼(number)추가
+ALTER TABLE MEMBER ADD NO NUMBER(20);
+
+--MEMBER테이블 NO 필드의 값은 시퀀스로 입력
+--사용할 시퀀스 생성
+CREATE SEQUENCE member_seq;
+
+INSERT INTO member(NO, id, name, addr, email, age)
+VALUES(member_seq.nextval, 'hong111', '홍길동', '서울시 종로구', 'hong123@naver.com', 24);
+
+INSERT INTO member(NO, id, name, addr, email, age)
+VALUES(member_seq.nextval, 'hong222', '홍길동', '서울시 종로구', 'hong123@naver.com', 24);
+
+
+INSERT INTO member(NO, id, name, addr, email, age)
+VALUES(member_seq.nextval, 'hong333', '홍길동', '서울시 종로구', 'hong123@naver.com', 24);
+
+
+INSERT INTO member(NO, id, name, addr, email, age)
+VALUES(member_seq.nextval, 'hong444', '홍길동', '서울시 종로구', 'hong123@naver.com', 24);
+
+
+INSERT INTO member(NO, id, name, addr, email, age)
+VALUES(member_seq.nextval, 'hong555', '홍길동', '서울시 종로구', 'hong123@naver.com', 24);
+
+
+
+INSERT INTO member(NO, id, name, addr, email, age)
+VALUES(member_seq.nextval, 'hong666', '홍길동', '서울시 종로구', 'hong123@naver.com', 24);
+
+-- id : pk(not null + unique) => 행 하나만 나옴
+SELECT * FROM MEMBER WHERE ID = 'hong111';
+SELECT * FROM MEMBER;
+
+SELECT * FROM MEMBER WHERE NAME LIKE'%홍%'
+
+--시퀀스명.currval : 가장 마지막으로 생성된 시퀀스 확인
+--시퀀스명.nextval : 시퀀스 발행
+SELECT MEMBER_SEQ.CURRVAL FROM DUAL;
+
+CREATE SEQUENCE SEQ_DEPT_SEQUENCE
+INCREMENT BY 10
+START WITH 10
+MAXVALUE 90
+MINVALUE 0
+NOCYCLE CACHE 2;
+
+CREATE TABLE DEPT_SEQUENCE AS SELECT * FROM DEPT WHERE 1<>1;
+
+INSERT INTO DEPT_SEQUENCE VALUES (SEQ_DEPT_SEQUENCE.NEXTVAL, 'DATABASE', 'SEOUL'); 
+SELECT * FROM DEPT_SEQUENCE;
+
+--가장 마지막으로 발행된 시퀀스 확인
+SELECT SEQ_DEPT_SEQUENCE.CURRVAL
+FROM DUAL;
+
+
+--시퀀스 수정
+ALTER SEQUENCE SEQ_DEPT_SEQUENCE
+INCREMENT BY 3
+MAXVALUE 99
+CYCLE;
+
+--시퀀스 제거
+DROP SEQUENCE BOARD_SEQ;
+DROP SEQUENCE SEQ_DEPT_SEQUENCE;
+
+
+--제약조건--*(중요! DML과 함께 알아야둬야 함)
+--: 테이블에 저장할 데이터를 제약하는 특수한 규칙
+-- 1) NOT NULL : 빈 값을 허용하지 않음(무조건 값을 넣어야 함)
+-- 2) UNION : 중복 불가
+-- 3) PRIMARY KEY(PK) : 유일하게 하나만 존재
+-- 4) FOREIGN KEY(FK) : 다른 테이블과 관계 맺기
+-- 5) CHECK : 데이터 형태와 범위를 지정
+-- 6) DEFAULT : 기본값 설정
+
+
+CREATE TABLE TBL_NOTNULL(
+LOGIN_ID VARCHAR2(20) NOT NULL,
+LOGIN_PWD VARCHAR2(20) NOT NULL,
+TEL VARCHAR2(20) 
+);
+
+--<에러발생>NULL을 ("SCOTT"."TBL_NOTNULL"."LOGIN_PWD") 안에 삽입할 수 없습니다
+INSERT INTO TBL_NOTNULL(LOGIN_ID, LOGIN_PWD,TEL)
+VALUES('hong123', NULL,'010-1234-5678');
+
+--빈값도 안됨(공백은 문자임)
+INSERT INTO TBL_NOTNULL(LOGIN_ID, LOGIN_PWD,TEL)
+VALUES('hong123', '' ,'010-1234-5678');
+
+
+INSERT INTO TBL_NOTNULL(LOGIN_ID, LOGIN_PWD)
+VALUES('hong123', 'hong123');
+
+
+--제약조건 이름 직접 지정
+CREATE TABLE TBL_NOTNULL2(
+LOGIN_ID VARCHAR2(20) CONSTRAINT TBLNN2_LOGID_NN NOT NULL,
+LOGIN_PWD VARCHAR2(20) CONSTRAINT TBLNN2_LOGPWD_NN  NOT NULL,
+TEL VARCHAR2(20));
+
+
+--이미 생성된 테이블에 제약조건 지정은 가능하나 이미 삽입된 데이터가 제약조건을 만족해야 한다.
+--(데이터가 있는 기존 테이블을 수정하려면 데이터도 다 그에 맞춰야 한다.)
+--TBL_NOTNULL TEL 컬럼을 NOT NULL 로 변경
+ALTER TABLE TBL_NOTNULL MODIFY (TEL NOT NULL);
+
+UPDATE TBL_NOTNULL tn
+SET TEL = '010-1234-5678'
+WHERE LOGIN_ID = 'hong123';
+
+ALTER TABLE TBL_NOTNULL2 MODIFY(TEL CONSTRAINT TBLNN2_TEL_NN NOT NULL);
+
+--제약조건 이름 변경
+ALTER TABLE TBL_NOTNULL2 RENAME CONSTRAINT TBLNN2_TEL_NN TO TBL_NN2_TEL_NN;
+
+--제약조건 삭제
+ALTER TABLE TBL_NOTNULL2 DROP CONSTRAINT TBL_NN2_TEL_NN;
+
+--UNIQUE : 데이터의 중복을 허용하지 않음
+--			NULL은 중복 대상에서 제외됨
+
+CREATE TABLE TBL_UNIQUE(
+LOGIN_ID VARCHAR2(20) UNIQUE,
+LOGIN_PWD VARCHAR2(20) NOT NULL,
+TEL VARCHAR2(20) 
+);
+
+--무결성 제약 조건에 위배됩니다.
+--= 데이터베이스에 저장되는 데이터의 정확성과 일치성 보장
+--DML 과정에서 지켜야 하는 규칙
+INSERT INTO TBL_UNIQUE(LOGIN_ID, LOGIN_PWD, TEL)
+VALUES('hong123', 'pw123', '010-1234-5678');
+
+--무결성 제약조건에 NULL은 중복대상에서 제외된다.
+INSERT INTO TBL_UNIQUE(LOGIN_ID, LOGIN_PWD, TEL)
+VALUES( NULL, 'pw123', '010-1234-5678');
+
+--UNIQUE 추가 설정
+ALTER TABLE TBL_UNIQUE MODIFY (TEL UNIQUE);
+
+UPDATE TBL_UNIQUE tu 
+SET TEL = NULL;
+
+--***유일하게 하나만 있는 값 : PRIMARY KEY(PK)
+--PK : NOT NULL + UNIQUE
+--PK는 테이블에 컬럼 하나만 지정 가능
+--중복된 데이터 있어도 다른 행과 구분 지어 데이터를 추출하기 위함
+CREATE TABLE TBL_PK(
+LOGIN_ID VARCHAR2(20) PRIMARY KEY,
+LOGIN_PWD VARCHAR2(20) NOT NULL,
+TEL VARCHAR2(20) 
+);
+
+
+CREATE TABLE TBL_PK2(
+LOGIN_ID VARCHAR2(20) CONSTRAINT TBLPK2_LGN_ID_PK PRIMARY KEY,
+LOGIN_PWD VARCHAR2(20) NOT NULL,
+TEL VARCHAR2(20) 
+);
+
+
+--두번실행시 아래 에러. unique 조건을 만족하지 않았기 때문!
+--무결성 제약 조건(SCOTT.SYS_C008364)에 위배됩니다 
+INSERT INTO TBL_PK(LOGIN_ID, LOGIN_PWD, TEL)
+VALUES( 'hong123', 'pw123', '010-1234-5678');
+
+-- 다른 테이블과 관계를 맺는 키 : 외래키(FK)
+--JOIN 구문 EMP(DEPTNO), DEPT(DEPTNO)
+--emp 테이블에 deptno 는 DEPT 테이블에 있는 deptno 값을 참조해서 삽입.
+
+--제약조건 만드는 법
+--부서 테이블 생성(참조 대상이 되는 테이블 먼저 작성)
+CREATE TABLE DEPT_FK( -- → 부모 테이블
+DEPTNO NUMBER(2) CONSTRAINT DEPTFK_PK PRIMARY KEY,
+DNAME VARCHAR2(14),
+LOC VARCHAR2(13));
+
+CREATE TABLE EMP_FK(  -- → 자식 테이블
+	EMPNO NUMBER(4) CONSTRAINT EMPFK_EMPNO_PK PRIMARY KEY,
+	ENAME VARCHAR2(10) NOT NULL,
+	JOB VARCHAR2(9) NOT NULL,
+	MGR NUMBER(4),
+	HIREDATE DATE,
+	SAL NUMBER(7,2) NOT NULL,
+	COMM NUMBER(7,2),
+	DEPTNO NUMBER(2) CONSTRAINT EMPFK_FK REFERENCES DEPT_FK(DEPTNO)
+);
+
+
+--무결성 제약조건(SCOTT.EMPFK_FK)이 위배되었습니다- 부모 키가 없습니다
+INSERT INTO EMP_FK(EMPNO, ENAME, JOB, HIREDATE, SAL, DEPTNO)
+VALUES(9999, 'TEST1', 'PARTNER', SYSDATE, 2500, 10 );
+
+
+--INSERT 시 주의점
+-- 참조 대상이 되는 테이블(부모 테이블)의 데이터 삽입
+--참조 하는 대상이 되는 테이블(자식 테이블)
+INSERT INTO DEPT_FK VALUES(10, 'DATABASE', 'SEOUL');
+
+INSERT INTO EMP_FK(EMPNO, ENAME, JOB, HIREDATE, SAL, DEPTNO)
+VALUES(9999, 'TEST1', 'PARTNER', SYSDATE, 2500, 10 );
+
+
+
+-- 무결성 제약조건(SCOTT.EMPFK_FK)이 위배되었습니다- 자식 레코드가 발견되었습니다
+DELETE FROM EMP_FK WHERE EMPNO = 9999; --먼저 진행해줘야
+DELETE FROM DEPT_FK WHERE DEPTNO = 10; -- 삭제가 된다.
+--↓
+--DELETE 시 주의점
+--참조하는 테이블(자식)의 데이터 삭제
+-- 1) 참조하는 테이블(자식)의 데이터 삭제(혹은 변경)
+-- 2) 참조 대상이 되는 테이블(부모)의 데이터 삭제
+
+--옵션 설정
+-- 1) ON DELETE CASCADE : 부모가 삭제될 때 자식도 같이 삭제
+-- 2)ON DELETE SET NULL : 부모 삭제 시 연결된 자식의 부모는 NULL 로 변경
+
+CREATE TABLE EMP_FK2(
+	EMPNO NUMBER(4) CONSTRAINT EMPFK_EMPNO_PK2 PRIMARY KEY,
+	ENAME VARCHAR2(10) NOT NULL,
+	JOB VARCHAR2(9) NOT NULL,
+	MGR NUMBER(4),
+	HIREDATE DATE,
+	SAL NUMBER(7,2) NOT NULL,
+	COMM NUMBER(7,2),
+	DEPTNO NUMBER(2) CONSTRAINT EMPFK_FK2 REFERENCES DEPT_FK(DEPTNO) ON DELETE CASCADE
+);
+
+INSERT INTO DEPT_FK VALUES(20, 'NETWORK', 'BUSAN');
+INSERT INTO EMP_FK2(EMPNO, ENAME, JOB, HIREDATE, SAL, DEPTNO)
+VALUES(9999, 'TEST1', 'PARTNER', SYSDATE, 2500, 20 ); 
+--부모 삭제 시 자식도 같이 삭제 됨.
+DELETE FROM DEPT_FK WHERE DEPTNO = 20; --삭제하면, 자식 테이블 값 삭제됨
+
+
+
+
+CREATE TABLE EMP_FK3(
+	EMPNO NUMBER(4) CONSTRAINT EMPFK_EMPNO_PK3 PRIMARY KEY,
+	ENAME VARCHAR2(10) NOT NULL,
+	JOB VARCHAR2(9) NOT NULL,
+	MGR NUMBER(4),
+	HIREDATE DATE,
+	SAL NUMBER(7,2) NOT NULL,
+	COMM NUMBER(7,2),
+	DEPTNO NUMBER(2) CONSTRAINT EMPFK_FK3 REFERENCES DEPT_FK(DEPTNO) ON DELETE SET NULL
+);
+
+INSERT INTO DEPT_FK VALUES(20, 'NETWORK', 'BUSAN');
+INSERT INTO EMP_FK3(EMPNO, ENAME, JOB, HIREDATE, SAL, DEPTNO)
+VALUES(9999, 'TEST1', 'PARTNER', SYSDATE, 2500, 20 ); 
+--부모 삭제 시 자식의 부서는 NULL 변경
+DELETE FROM DEPT_FK WHERE DEPTNO = 20; --삭제하면, 자식 테이블 값 NULL
+
+
+
+--check : 데이터의 형태와 범위를 지정
+CREATE TABLE TBL_CHECK( 
+LOGIN_ID VARCHAR2(20) PRIMARY KEY,
+LOGIN_PWD VARCHAR2(20) CHECK (LENGTH(LOGIN_PWD) > 3),
+TEL VARCHAR2(20)
+);
+
+--CHECK로 제약을 걸었기 때문.
+--체크 제약조건(SCOTT.SYS_C008390)이 위배되었습니다
+INSERT INTO TBL_CHECK
+VALUES('TEST_ID', '1021', '010-1234-5678');
+
+
+--DEFAULT : 기본값
+CREATE TABLE TBL_DEFAULT( 
+LOGIN_ID VARCHAR2(20) PRIMARY KEY,
+LOGIN_PWD VARCHAR2(20) DEFAULT '1234',
+TEL VARCHAR2(20)
+);
+
+
+INSERT INTO TBL_DEFAULT(LOGIN_ID, TEL)
+VALUES('TEST_ID', '010-1234-5678');
+
+CREATE TABLE BOARD(
+ID  NUMBER(8) PRIMARY KEY,
+NAME VARCHAR2(20) NOT NULL,
+REGDATE DATE DEFAULT SYSDATE
+);
+
+
+INSERT INTO BOARD(ID, NAME)
+VALUES(1, '홍길동');
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
